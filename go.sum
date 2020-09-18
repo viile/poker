@@ -1,0 +1,4 @@
+github.com/google/uuid v1.1.2 h1:EVhdT+1Kseyi1/pUmXKaFxYsDNy9RQYkMWRH68J/W7Y=
+github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/magiconair/properties v1.8.3 h1:kJSsc6EXkBLgr3SphHk9w5mtjn0bjlR4JYEXKrJ45rQ=
+github.com/magiconair/properties v1.8.3/go.mod h1:y3VJvCyxH9uVvJTWEGAELF3aiYNyPKd5NZ3oSwXrF60=

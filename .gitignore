@@ -1,0 +1,27 @@
+# Created by .ignore support plugin (hsz.mobi)
+poker
+*.exe
+*.dll
+*.so
+*.dylib
+*.out
+*.iml
+app.log
+.glide/
+.idea/
+.bin/
+!.bin/*.sh
+.vscode/
+.DS_Store
+src/.DS_Store
+.build/
+configs/conf.toml
+#/vendor/*
+#!/vendor/vendor.json
+configs/service/conf.toml
+app-service
+cmd/service/service
+apptt
+app-api
+dump.rdb
+outputs/*
