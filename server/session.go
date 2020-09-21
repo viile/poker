@@ -40,5 +40,6 @@ func (s *Session) OnConnect() {
 
 // OnHandle .
 func (s *Session) OnHandle(buf *[]byte) {
-	_ = s.conn.SendMessage([]byte("长度test错误️"))
+	log.Println("[debug]","id:",s.GetID(),"rev:",string(*buf))
+	_ = s.conn.SendMessage([]byte("test..."))
 }

@@ -128,6 +128,13 @@ func (c Cards) Len() int           { return len(c) }
 func (c Cards) Less(i, j int) bool { return c[i].GetVal() < c[j].GetVal() }
 func (c Cards) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 
+func (c Cards) String() string {
+	var str string
+	for _,s := range c {
+		str += s.name
+	}
+	return str
+}
 func (c Cards) IsSeq() bool {
 	if c.Len() <= 0 {
 		return false

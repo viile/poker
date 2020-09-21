@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 )
@@ -89,6 +91,7 @@ func (s *Server) connectHandler(ctx context.Context, c net.Conn) {
 		cancel()
 		conn.Close()
 		s.sessions.Delete(session.GetID())
+		s.relation.Delete(session.GetID())
 	}()
 
 	go conn.readCoroutine(connctx)
@@ -96,18 +99,61 @@ func (s *Server) connectHandler(ctx context.Context, c net.Conn) {
 
 	session.OnConnect()
 
+	session.conn.SendMessage([]byte(`
+欢乐斗地主终端版V1.0
+输入[list]查看当前存在的房间
+输入[create]创建新房间
+输入[join]加入房间,例如 join 123
+`))
+
 	for {
 		select {
 		case err := <-conn.done:
 			session.OnDisconnect(err)
-			if room,ok := s.relation.Load(session.GetID());ok {
-				room.(*Room).Exit(session.GetID())
+			if i,ok := s.relation.Load(session.GetID());ok {
 				s.relation.Delete(session.GetID())
+				if room,ok := s.rooms.Load(i);ok{
+					if _,ok := room.(*Room);ok {
+						room.(*Room).Exit(session)
+					}
+				}
 			}
 			return
 		case msg := <-conn.messageCh:
-			log.Println("[debug]","id:",session.GetID(),"rev:",string(*msg))
-			session.OnHandle(msg)
+			m := strings.ToLower(strings.TrimSpace(string(*msg)))
+			if len(m) <= 0 {
+				continue
+			}
+			if m == "list" {
+				s.rooms.Range(func(key, value interface{}) bool {
+					session.conn.SendMessage([]byte(key.(string) + "\n"))
+					return true
+				})
+			} else if m == "create" {
+				i := strconv.Itoa(int(atomic.AddUint32(&s.counter, 1)))
+				room := NewRoom(i, session.GetID())
+				s.rooms.Store(i, room)
+				s.relation.Store(session.GetID(), i)
+				session.conn.SendMessage([]byte(fmt.Sprintf("房间创建成功,序号:%s\n",i)))
+			} else if len(m) >= 6 && m[:5] == "join " {
+				var ret bool
+				if room, ok := s.rooms.Load(m[5:]); ok {
+					if _,ok := room.(*Room);ok{
+						ret = true
+						if err := room.(*Room).Join(session);err != nil {
+							session.conn.SendMessage([]byte(err.Error() + "\n"))
+							continue
+						}
+						s.relation.Store(session.GetID(), m[5:])
+						session.conn.SendMessage([]byte("加入成功.\n"))
+					}
+				}
+				if !ret {
+					session.conn.SendMessage([]byte("房间不存在!\n"))
+				}
+			} else {
+				session.OnHandle(msg)
+			}
 		}
 	}
 }

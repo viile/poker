@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/viile/poker/server"
 	"log"
+	"math/rand"
+	"time"
 )
 
 func main() {
@@ -20,7 +22,7 @@ func main() {
 	flag.Parse()
 
 	addr := fmt.Sprintf("%s:%s",host,port)
-
+	rand.Seed(time.Now().UnixNano())
 	var s *server.Server
 	s,err = server.NewServer(addr)
 	if err != nil {
@@ -29,3 +31,7 @@ func main() {
 	}
 	s.Run()
 }
+
+
+// room : list create join exit
+// poker : start pass auto 334455
