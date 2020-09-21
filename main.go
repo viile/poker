@@ -28,12 +28,4 @@ func main() {
 		return
 	}
 	s.Run()
-
-	switch game {
-	case "poker":
-
-	default:
-
-	}
-
 }

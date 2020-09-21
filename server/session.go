@@ -24,14 +24,14 @@ func NewSession(conn *Conn,id string) *Session {
 	return session
 }
 
-// GetSessionID get session ID
-func (s *Session) GetSessionID() string {
+// GetID get session ID
+func (s *Session) GetID() string {
 	return s.id
 }
 
 // OnDisconnect .
 func (s *Session) OnDisconnect(err error) {
-	log.Println("[event]",s.id , " lost.")
+	log.Println("[event]",s.id , " lost.",err)
 }
 // OnConnect .
 func (s *Session) OnConnect() {
@@ -40,5 +40,5 @@ func (s *Session) OnConnect() {
 
 // OnHandle .
 func (s *Session) OnHandle(buf *[]byte) {
-	_ = s.conn.SendMessage([]byte("♠♣♥♦\n长度错误\n️"))
+	_ = s.conn.SendMessage([]byte("长度test错误️"))
 }

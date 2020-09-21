@@ -36,7 +36,6 @@ func (c *Conn) Close() {
 
 // SendMessage send message
 func (c *Conn) SendMessage(buf []byte) error {
-	//fmt.Println("send:",buf)
 	c.sendCh <- buf
 	return nil
 }
