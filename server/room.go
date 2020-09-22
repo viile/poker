@@ -100,6 +100,9 @@ func (r *Room) start() error {
 		cards[i], cards[num] = cards[num], cards[i]
 	}
 	// 发牌
+	r.Sites[0].Cards = nil
+	r.Sites[1].Cards = nil
+	r.Sites[2].Cards = nil
 	index := 0
 	for index < 51 {
 		s := index%3
