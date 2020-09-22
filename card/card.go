@@ -63,24 +63,23 @@ func CardValue(n string) int {
 
 type Card struct {
 	name string
-	val int
+	val  int
 }
 
-func NewCard(c string) Card{
+func NewCard(c string) Card {
 	return Card{
-		name:c,
-		val:CardValue(c),
+		name: c,
+		val:  CardValue(c),
 	}
 }
 
-func (c Card) GetName() string  {
+func (c Card) GetName() string {
 	return c.name
 }
 
-func (c Card) GetVal() int  {
+func (c Card) GetVal() int {
 	return c.val
 }
-
 
 const (
 	// 单张
@@ -115,12 +114,12 @@ const (
 
 type Cards []Card
 
-func NewCards(s string) Cards{
-	cards := make([]Card,len(s))
-	for k,v := range s {
+func NewCards(s string) Cards {
+	cards := make(Cards, len(s))
+	for k, v := range s {
 		cards[k] = NewCard(string(v))
 	}
-
+	sort.Sort(cards)
 	return cards
 }
 
@@ -130,7 +129,7 @@ func (c Cards) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 
 func (c Cards) String() string {
 	var str string
-	for _,s := range c {
+	for _, s := range c {
 		str += s.name
 	}
 	return str
@@ -143,7 +142,7 @@ func (c Cards) IsSeq() bool {
 	head := c[0].GetVal()
 	index := 0
 	for index < c.Len() {
-		if head + index != c[index].GetVal() {
+		if head+index != c[index].GetVal() {
 			return false
 		}
 		index++
@@ -152,7 +151,86 @@ func (c Cards) IsSeq() bool {
 	return true
 }
 
-func (c Cards) Parser() (t int,err error) {
+
+func compare(a,b int) (int) {
+	if a < b {
+		return -1
+	} else if a == b {
+		return 0
+	} else {
+		return 1
+	}
+}
+
+func (c Cards) Contain(o Cards) (bool) {
+	index := 0
+	flag := 0
+	for index < c.Len() {
+		if c[index].val == o[flag].val {
+			flag++
+		}
+		if flag >= o.Len() {
+			return true
+		}
+		index++
+	}
+	return false
+}
+
+func (c Cards) Match(o Cards) {
+
+}
+
+// The result will be 0 if o==c, -1 if o < c, and +1 if o > c.
+func (c Cards) Compare(o Cards) (i int, err error) {
+	var a, b int
+	if a, err = c.Parser(); err != nil {
+		return
+	}
+	if b, err = o.Parser(); err != nil {
+		return
+	}
+	if a == TypeJokerBomb {
+		i = -1
+		return
+	}
+	if b == TypeJokerBomb {
+		i = 1
+		return
+	}
+	if a != b {
+		if a == TypeBomb {
+			i = -1
+			return
+		}
+		if b == TypeBomb {
+			i = 1
+			return
+		}
+		err = errors.New("不符合出牌规则")
+		return
+	}
+
+	cc := NewCardsComponent(c)
+	oc := NewCardsComponent(o)
+
+	switch a {
+	case TypeSole,TypeSoleChain,TypePair,TypePairChain,TypeTrio,TypeBomb:
+		i = compare(o[0].GetVal(),c[0].GetVal())
+		return
+	case TypeTrioSole,TypeTrioPair,TypeAirplane,TypeAirplaneSole,TypeAirplanePair:
+		i = compare(oc.Trio[0].GetVal(),cc.Trio[0].GetVal())
+		return
+	case TypeDualSole,TypeDualPair:
+		i = compare(oc.Dual[0].GetVal(),cc.Dual[0].GetVal())
+		return
+	}
+
+	err = errors.New("不符合出牌规则")
+	return
+}
+
+func (c Cards) Parser() (t int, err error) {
 	comp := NewCardsComponent(c)
 	switch c.Len() {
 	case 1:
@@ -206,35 +284,35 @@ func (c Cards) Parser() (t int,err error) {
 
 	// sole chain
 	// 34567
-	if c.Len() >=5 && c[0].GetVal() <= 10 && c.Len() == comp.Sole.Len() && comp.Sole.IsSeq(){
+	if c.Len() >= 5 && c[0].GetVal() <= 10 && c.Len() == comp.Sole.Len() && comp.Sole.IsSeq() {
 		t = TypeSoleChain
 		return
 	}
 
 	// pain chain
 	// 33445566
-	if c.Len() >=6 && c.Len() % 2 ==0 && c.Len() == comp.Pair.Len() * 2 && comp.Pair.IsSeq() {
+	if c.Len() >= 6 && c.Len()%2 == 0 && c.Len() == comp.Pair.Len()*2 && comp.Pair.IsSeq() {
 		t = TypePairChain
 		return
 	}
 
 	// airTrio
 	// 444555
-	if c.Len() >=6 && c.Len() % 3 ==0 && c.Len() == comp.Trio.Len() * 3 && comp.Trio.IsSeq(){
+	if c.Len() >= 6 && c.Len()%3 == 0 && c.Len() == comp.Trio.Len()*3 && comp.Trio.IsSeq() {
 		t = TypeAirplane
 		return
 	}
 
 	// airTrioSole
 	// 34445556
-	if c.Len() >=8 && c.Len() % 4 ==0 && (comp.Sole.Len() + comp.Pair.Len() * 2 + comp.Dual.Len() * 4 ) == comp.Trio.Len() && comp.Trio.IsSeq(){
+	if c.Len() >= 8 && c.Len()%4 == 0 && (comp.Sole.Len()+comp.Pair.Len()*2+comp.Dual.Len()*4) == comp.Trio.Len() && comp.Trio.IsSeq() {
 		t = TypeAirplaneSole
 		return
 	}
 
 	// airTrioPair
 	// 3344455566
-	if c.Len() >=10 && c.Len() % 5 ==0 && (comp.Pair.Len()+ comp.Dual.Len() * 2 ) == comp.Trio.Len() && comp.Trio.IsSeq(){
+	if c.Len() >= 10 && c.Len()%5 == 0 && (comp.Pair.Len()+comp.Dual.Len()*2) == comp.Trio.Len() && comp.Trio.IsSeq() {
 		t = TypeAirplanePair
 		return
 	}
@@ -252,29 +330,29 @@ type CardsComponent struct {
 
 func NewCardsComponent(c Cards) *CardsComponent {
 	comp := &CardsComponent{
-		Sole: make(Cards,0),
-		Pair: make(Cards,0),
-		Trio: make(Cards,0),
-		Dual: make(Cards,0),
+		Sole: make(Cards, 0),
+		Pair: make(Cards, 0),
+		Trio: make(Cards, 0),
+		Dual: make(Cards, 0),
 	}
-	tmp := make(map[string]int,0)
-	for _,v := range c {
-		if _,ok := tmp[v.name];ok {
+	tmp := make(map[string]int, 0)
+	for _, v := range c {
+		if _, ok := tmp[v.name]; ok {
 			tmp[v.name]++
 		} else {
 			tmp[v.name] = 1
 		}
 	}
-	for k,v := range tmp {
+	for k, v := range tmp {
 		switch v {
 		case 1:
-			comp.Sole = append(comp.Sole,NewCard(k))
+			comp.Sole = append(comp.Sole, NewCard(k))
 		case 2:
-			comp.Pair = append(comp.Pair,NewCard(k))
+			comp.Pair = append(comp.Pair, NewCard(k))
 		case 3:
-			comp.Trio = append(comp.Trio,NewCard(k))
+			comp.Trio = append(comp.Trio, NewCard(k))
 		case 4:
-			comp.Dual = append(comp.Dual,NewCard(k))
+			comp.Dual = append(comp.Dual, NewCard(k))
 		}
 	}
 	sort.Sort(comp.Sole)

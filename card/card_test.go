@@ -5,7 +5,20 @@ import (
 	"testing"
 )
 
-func TestNewCards(t *testing.T) {
+func TestNewCardsContain(t *testing.T) {
+	var r bool
+	r = NewCards("345667").Contain(NewCards("346"))
+	assert.Equal(t,r,true,"Contain")
+
+	r = NewCards("45667").Contain(NewCards("346"))
+	assert.Equal(t,r,false,"Contain")
+
+	r = NewCards("45667").Contain(NewCards("46667"))
+	assert.Equal(t,r,false,"Contain")
+}
+
+
+func TestNewCardsParser(t *testing.T) {
 	var (
 		ct int
 		err error
