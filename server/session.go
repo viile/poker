@@ -40,6 +40,6 @@ func (s *Session) OnConnect() {
 
 // OnHandle .
 func (s *Session) OnHandle(buf *[]byte) {
-	log.Println("[debug]","id:",s.GetID(),"rev:",string(*buf))
-	_ = s.conn.SendMessage([]byte("test..."))
+	//log.Println("[debug]","id:",s.GetID(),"rev:",string(*buf))
+	//_ = s.conn.SendMessage([]byte("test..."))
 }

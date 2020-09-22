@@ -162,6 +162,10 @@ func compare(a,b int) (int) {
 	}
 }
 
+func (c Cards) Recommend(o Cards) (str string) {
+	return ""
+}
+
 func (c Cards) Contain(o Cards) (bool) {
 	index := 0
 	flag := 0

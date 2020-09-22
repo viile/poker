@@ -152,7 +152,16 @@ func (s *Server) connectHandler(ctx context.Context, c net.Conn) {
 					session.conn.SendMessage([]byte("房间不存在!\n"))
 				}
 			} else {
-				session.OnHandle(msg)
+				if i,ok := s.relation.Load(session.GetID());ok {
+					if room,ok := s.rooms.Load(i);ok{
+						if _,ok := room.(*Room);ok {
+							if err := room.(*Room).Handle(session,m);err != nil {
+								session.conn.SendMessage([]byte(err.Error() + "\n"))
+								continue
+							}
+						}
+					}
+				}
 			}
 		}
 	}
