@@ -177,10 +177,6 @@ func (c Cards) Contain(o Cards) (bool) {
 	return false
 }
 
-func (c Cards) Match(o Cards) {
-
-}
-
 // The result will be 0 if o==c, -1 if o < c, and +1 if o > c.
 func (c Cards) Compare(o Cards) (i int, err error) {
 	var a, b int
@@ -190,6 +186,7 @@ func (c Cards) Compare(o Cards) (i int, err error) {
 	if b, err = o.Parser(); err != nil {
 		return
 	}
+	// 先判断王炸
 	if a == TypeJokerBomb {
 		i = -1
 		return
@@ -198,6 +195,8 @@ func (c Cards) Compare(o Cards) (i int, err error) {
 		i = 1
 		return
 	}
+
+	// 再判断普通炸弹
 	if a != b {
 		if a == TypeBomb {
 			i = -1
@@ -207,6 +206,14 @@ func (c Cards) Compare(o Cards) (i int, err error) {
 			i = 1
 			return
 		}
+
+		// 如果双方牌型不一致,且都不是炸弹,说明牌型错误
+		err = errors.New("不符合出牌规则")
+		return
+	}
+
+	// 最后比较相同牌型大小
+	if c.Len() != o.Len() {
 		err = errors.New("不符合出牌规则")
 		return
 	}

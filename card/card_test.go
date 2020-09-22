@@ -17,6 +17,53 @@ func TestNewCardsContain(t *testing.T) {
 	assert.Equal(t,r,false,"Contain")
 }
 
+func TestNewCardsCompare(t *testing.T) {
+	var (
+		i int
+		err error
+	)
+
+	i,err = NewCards("a").Compare(NewCards("2"))
+	assert.Equal(t,i,1,"Compare")
+	assert.Equal(t,err,nil,"err")
+
+	i,err = NewCards("a").Compare(NewCards("3"))
+	assert.Equal(t,i,-1,"Compare")
+	assert.Equal(t,err,nil,"err")
+
+	i,err = NewCards("a").Compare(NewCards("a"))
+	assert.Equal(t,i,0,"Compare")
+	assert.Equal(t,err,nil,"err")
+
+	i,err = NewCards("a").Compare(NewCards("3333"))
+	assert.Equal(t,i,1,"Compare")
+	assert.Equal(t,err,nil,"err")
+
+	i,err = NewCards("a").Compare(NewCards("sb"))
+	assert.Equal(t,i,1,"Compare")
+	assert.Equal(t,err,nil,"err")
+
+	i,err = NewCards("34445556").Compare(NewCards("36667778"))
+	assert.Equal(t,i,1,"Compare")
+	assert.Equal(t,err,nil,"err")
+
+	i,err = NewCards("36667778").Compare(NewCards("9999"))
+	assert.Equal(t,i,1,"Compare")
+	assert.Equal(t,err,nil,"err")
+
+	i,err = NewCards("34567").Compare(NewCards("56789"))
+	assert.Equal(t,i,1,"Compare")
+	assert.Equal(t,err,nil,"err")
+
+	i,err = NewCards("4444").Compare(NewCards("sb"))
+	assert.Equal(t,i,1,"Compare")
+	assert.Equal(t,err,nil,"err")
+
+	i,err = NewCards("344447").Compare(NewCards("588889"))
+	assert.Equal(t,i,1,"Compare")
+	assert.Equal(t,err,nil,"err")
+
+}
 
 func TestNewCardsParser(t *testing.T) {
 	var (
