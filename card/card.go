@@ -62,19 +62,19 @@ func CardValue(n string) int {
 }
 
 type Card struct {
-	name string
+	Name string
 	val  int
 }
 
 func NewCard(c string) Card {
 	return Card{
-		name: c,
+		Name: c,
 		val:  CardValue(c),
 	}
 }
 
 func (c Card) GetName() string {
-	return c.name
+	return c.Name
 }
 
 func (c Card) GetVal() int {
@@ -130,7 +130,7 @@ func (c Cards) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 func (c Cards) String() string {
 	var str string
 	for _, s := range c {
-		str += s.name
+		str += s.Name
 	}
 	return str
 }
@@ -241,6 +241,25 @@ func (c Cards) Compare(o Cards) (i int, err error) {
 	return
 }
 
+func (c Cards) Remove(o Cards) Cards {
+	ret := make(Cards,0)
+	var i,j int
+	for i < c.Len() {
+		if j >= o.Len() || c[i].Name != o[j].Name{
+			ret = append(ret,c[i])
+			i++
+			continue
+		}
+		if c[i].Name == o[j].Name {
+			i++
+			j++
+			continue
+		}
+	}
+	sort.Sort(ret)
+	return ret
+}
+
 func (c Cards) Parser() (t int, err error) {
 	comp := NewCardsComponent(c)
 	switch c.Len() {
@@ -348,10 +367,10 @@ func NewCardsComponent(c Cards) *CardsComponent {
 	}
 	tmp := make(map[string]int, 0)
 	for _, v := range c {
-		if _, ok := tmp[v.name]; ok {
-			tmp[v.name]++
+		if _, ok := tmp[v.Name]; ok {
+			tmp[v.Name]++
 		} else {
-			tmp[v.name] = 1
+			tmp[v.Name] = 1
 		}
 	}
 	for k, v := range tmp {

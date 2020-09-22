@@ -17,6 +17,13 @@ func TestNewCardsContain(t *testing.T) {
 	assert.Equal(t,r,false,"Contain")
 }
 
+func TestNewCardsRemove(t *testing.T) {
+	var r string
+	r = NewCards("345667").Remove(NewCards("346")).String()
+	assert.Equal(t,r,"567","Remove")
+
+}
+
 func TestNewCardsCompare(t *testing.T) {
 	var (
 		i int

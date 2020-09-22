@@ -43,3 +43,7 @@ func (s *Session) OnHandle(buf *[]byte) {
 	//log.Println("[debug]","id:",s.GetID(),"rev:",string(*buf))
 	//_ = s.conn.SendMessage([]byte("test..."))
 }
+
+func (s *Session) Send(msg string) {
+	s.conn.SendMessage([]byte(msg))
+}
