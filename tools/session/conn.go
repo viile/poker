@@ -1,10 +1,16 @@
-package server
+package session
 
 import (
 	"bytes"
 	"net"
 	"context"
 )
+
+type Connect interface {
+	Close()
+	SendMessage(msg string) error
+
+}
 
 // Conn wrap net.Conn
 type Conn struct {
@@ -34,9 +40,26 @@ func (c *Conn) Close() {
 	_ = c.rawConn.Close()
 }
 
+func (c *Conn) Write(p []byte) (n int, err error){
+	c.sendCh <- p
+	return
+}
+
 // SendMessage send message
 func (c *Conn) SendMessage(buf []byte) error {
 	c.sendCh <- buf
+	return nil
+}
+
+// SendMessage send message
+func (c *Conn) SendErr(err error) error {
+	c.sendCh <- []byte(err.Error())
+	return nil
+}
+
+// SendMessage send message
+func (c *Conn) SendMsg(msg string) error {
+	c.sendCh <- []byte(msg)
 	return nil
 }
 

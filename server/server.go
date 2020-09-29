@@ -3,30 +3,76 @@ package server
 import (
 	"context"
 	"fmt"
-	"log"
-	"net"
-	"strconv"
-	"strings"
-	"sync"
+	"github.com/viile/poker/server/landlord"
+	"github.com/viile/poker/tools/log"
+	"github.com/viile/poker/tools/session"
+	"github.com/viile/poker/tools/storage"
+	"github.com/viile/poker/tools/template"
+	"go.uber.org/zap"
 	"sync/atomic"
 )
 
 // Server struct
 type Server struct {
-	// 维护网络连接
-	sessions *sync.Map
 	//
-	rooms *sync.Map
+	sessions storage.Storage
 	//
-	relation *sync.Map
+	rooms storage.Storage
 	//
-	listener net.Listener
-	//
-	stopCh   chan interface{}
+	listener *session.Server
 	//
 	counter uint32
 }
 
+func NewServer(addr string) (*Server, error) {
+	s := &Server{
+		sessions: storage.NewMemoryStorage(),
+		rooms: storage.NewMemoryStorage(),
+	}
+
+	l,err := session.NewServer(addr,s.Handle)
+	if err != nil {
+		return nil, err
+	}
+	s.listener = l
+
+	return s, nil
+}
+
+func (s *Server) Handle(ctx context.Context,e *session.EventSession) {
+	log.GetLogger().Info("Handle",zap.Any("e",e))
+	if e.Argv[0] == "list" {
+		objects,err := s.rooms.List(ctx,0,20)
+		if err != nil {
+			log.GetLogger().Error("Handle",zap.Error(err))
+			e.SendErr(err)
+			return
+		}
+		template.RoomList.Execute(e.Conn,objects)
+	} else if e.Argv[0] == "create" {
+		i := atomic.AddUint32(&s.counter, 1)
+		logic := landlord.NewRoom(ctx,int(i),fmt.Sprintf("%s的斗地主房间",e.Session.GetName(ctx)),e.Session.GetName(ctx))
+
+		err := s.rooms.Write(ctx,i, logic)
+		if err != nil {
+			log.GetLogger().Error("Handle",zap.Error(err))
+			return
+		}
+
+		e.SendMsg("房间创建成功\n")
+
+	} else if e.Argv[0] == "join" {
+
+	} else {
+
+	}
+}
+
+func (s *Server) Run() {
+	s.listener.Run()
+}
+
+/*
 // NewServer create a new socket service
 func NewServer(addr string) (*Server, error) {
 	l, err := net.Listen("tcp", addr)
@@ -80,8 +126,8 @@ func (s *Server) acceptHandler(ctx context.Context) {
 }
 
 func (s *Server) connectHandler(ctx context.Context, c net.Conn) {
-	conn := NewConn(c)
-	session := NewSession(conn,fmt.Sprintf("%s-%d",c.RemoteAddr().String(),atomic.AddUint32(&s.counter,1)))
+	conn := network.NewConn(c)
+	session := session2.NewSession(conn,fmt.Sprintf("%s-%d",c.RemoteAddr().String(),atomic.AddUint32(&s.counter,1)))
 
 	s.sessions.Store(session.GetID(), session)
 
@@ -97,7 +143,7 @@ func (s *Server) connectHandler(ctx context.Context, c net.Conn) {
 	go conn.readCoroutine(connctx)
 	go conn.writeCoroutine(connctx)
 
-	session.OnConnect()
+	session.Login()
 
 	session.conn.SendMessage([]byte(`
 欢乐斗地主终端版V1.0
@@ -109,7 +155,7 @@ func (s *Server) connectHandler(ctx context.Context, c net.Conn) {
 	for {
 		select {
 		case err := <-conn.done:
-			session.OnDisconnect(err)
+			session.Logout(err)
 			if i,ok := s.relation.Load(session.GetID());ok {
 				s.relation.Delete(session.GetID())
 				if room,ok := s.rooms.Load(i);ok{
@@ -166,4 +212,4 @@ func (s *Server) connectHandler(ctx context.Context, c net.Conn) {
 		}
 	}
 }
-
+*/
