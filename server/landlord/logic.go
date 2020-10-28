@@ -18,24 +18,6 @@ const (
 	RoomStatusPlaing
 )
 
-type Site struct {
-	Index  int
-	Name   string
-	Sess   *session.Session
-	Cards  Cards
-	Rob    bool
-	Status int
-}
-
-func (s *Site) bind(ctx context.Context, sess *session.Session) {
-	s.Sess = sess
-}
-
-func (s *Site) unbind(ctx context.Context, sess *session.Session) {
-	s.Name = ""
-	s.Sess = nil
-}
-
 type Room struct {
 	Id   int
 	Name string
@@ -206,12 +188,12 @@ func (r *Room) calc(ctx context.Context, s *session.Session, e string) (err erro
 
 	r.Sites[r.Wait].Cards = r.Sites[r.Wait].Cards.Remove(c)
 
-	r.boardcast(fmt.Sprintf("玩家 %s 出牌: %s\n", s.GetID(), c.String()))
-	r.boardcast(fmt.Sprintf("玩家 %s 剩余手牌数: %d\n", s.GetID(), r.Sites[r.Wait].Cards.Len()))
+	r.boardcast(fmt.Sprintf("玩家 %s 出牌: %s\n", s.GetName(ctx), c.String()))
+	r.boardcast(fmt.Sprintf("玩家 %s 剩余手牌数: %d\n", s.GetName(ctx), r.Sites[r.Wait].Cards.Len()))
 	s.SendMsg(fmt.Sprintf("您的手牌:%s\n", r.Sites[r.Wait].Cards))
 	if r.Sites[r.Wait].Cards.Len() <= 0 {
 		r.Status = RoomStatusInit
-		r.boardcast(fmt.Sprintf("游戏结束,玩家 %s 获胜\n", s.GetID()))
+		r.boardcast(fmt.Sprintf("游戏结束,玩家 %s 获胜\n", s.GetName(ctx)))
 	}
 
 	r.LastCards = c
@@ -232,7 +214,7 @@ func (r *Room) boardcast(msg string) {
 func (r *Room) Join(ctx context.Context, sess *session.Session) error {
 	defer r.lock()()
 	r.Sessions[sess.GetID()] = sess
-	r.boardcast(fmt.Sprintf("玩家 %s 加入房间\n", sess.GetID()))
+	r.boardcast(fmt.Sprintf("玩家 %s 加入房间\n", sess.GetName(ctx)))
 	for _, v := range r.Sites {
 		if v.Sess == nil {
 			v.bind(ctx, sess)
@@ -246,7 +228,7 @@ func (r *Room) Join(ctx context.Context, sess *session.Session) error {
 // Logout .
 func (r *Room) Exit(ctx context.Context, sess *session.Session) {
 	defer r.lock()()
-	r.boardcast(fmt.Sprintf("玩家 %s 离开房间\n", sess.GetID()))
+	r.boardcast(fmt.Sprintf("玩家 %s 离开房间\n", sess.GetName(ctx)))
 	delete(r.Sessions, sess.GetID())
 	for _, v := range r.Sites {
 		if v.Name == sess.GetID() {

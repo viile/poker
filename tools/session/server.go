@@ -8,6 +8,7 @@ import (
 	"github.com/viile/poker/tools/template"
 	"go.uber.org/zap"
 	"net"
+	"sync/atomic"
 )
 
 type EventSession struct {
@@ -25,11 +26,13 @@ type Server struct {
 	//
 	stopCh chan interface{}
 
-	f func(ctx context.Context, e *EventSession)
+	counter uint
+
+	f func(ctx context.Context, e *EventSession) error
 }
 
 // NewServer create a new socket service
-func NewServer(addr string, f func(ctx context.Context, e *EventSession)) (*Server, error) {
+func NewServer(addr string, f func(ctx context.Context, e *EventSession) error) (*Server, error) {
 	l, err := net.Listen("tcp", addr)
 
 	if err != nil {
@@ -91,7 +94,7 @@ func (s *Server) connectHandler(ctx context.Context, c net.Conn) {
 	go conn.readCoroutine(cctx)
 	go conn.writeCoroutine(cctx)
 
-	sess := NewSession(ctx, conn)
+	sess := NewSession(ctx, conn,atomic.AddUint32(&s.counter, 1))
 
 	for {
 		select {

@@ -6,7 +6,7 @@ import (
 
 var (
 	NeedLogin, _ = template.New("NeedLogin").Parse(`
-请先登录!命令格式:login <name> (名字由英文数字组成,示例: login tom1 )
+请先登录!命令格式:login <name> (名字由英文数字组成,示例: login tom01 )
 `)
 
 	LoginSuccess, _ = template.New("LoginSuccess").Parse(`
@@ -29,5 +29,9 @@ var (
 `)
 	RoomCreateSuccess, _ = template.New("RoomCreateSuccess").Parse(`
 房价创建成功!序号:{{.Id}}
+`)
+
+	ErrMessage, _ = template.New("ErrMessage").Parse(`
+{{.Error}}
 `)
 )

@@ -7,9 +7,11 @@ import (
 	"github.com/viile/poker/tools/event"
 	"github.com/viile/poker/tools/log"
 	"github.com/viile/poker/tools/session"
+	"github.com/viile/poker/tools/errors"
 	"github.com/viile/poker/tools/storage"
 	"github.com/viile/poker/tools/template"
 	"go.uber.org/zap"
+	"strconv"
 	"sync/atomic"
 )
 
@@ -40,33 +42,59 @@ func NewServer(addr string) (*Server, error) {
 	return s, nil
 }
 
-func (s *Server) Handle(ctx context.Context, e *session.EventSession) {
+func (s *Server) getRoom(ctx context.Context,id string) (room Room,err error) {
+	var index int
+	if index,err = strconv.Atoi(id);err != nil {
+		return
+	}
+
+	var r interface{}
+	if r,err = s.rooms.Read(ctx,index);err != nil {
+		return
+	}
+
+	var ok bool
+	if room,ok = r.(Room);!ok {
+		err = errors.ErrRoomNotExist
+		return
+	}
+
+	return
+}
+
+func (s *Server) Handle(ctx context.Context, e *session.EventSession) (err error) {
 	log.GetLogger().Info("Handle", zap.Any("e", e))
 	if e.Match(event.CommandList) {
-		objects, err := s.rooms.List(ctx, 0, 20)
-		if err != nil {
+		var objects []interface{}
+		if objects, err = s.rooms.List(ctx, 0, 20);err != nil {
 			log.GetLogger().Error("Handle", zap.Error(err))
-			e.SendErr(err)
 			return
 		}
-		template.RoomList.Execute(e.Conn, objects)
+		return template.RoomList.Execute(e.Conn, objects)
 	} else if e.Match(event.CommandCreate) {
 		i := atomic.AddUint32(&s.counter, 1)
 		logic := landlord.NewRoom(ctx, int(i), fmt.Sprintf("%s的斗地主房间", e.Session.GetName(ctx)), e.Session.GetName(ctx))
 
-		err := s.rooms.Write(ctx, i, logic)
-		if err != nil {
-			log.GetLogger().Error("Handle", zap.Error(err))
+		if err = s.rooms.Write(ctx, i, logic); err != nil {
 			return
 		}
 
-		e.SendMsg("房间创建成功\n")
-
+		return e.SendMsg("房间创建成功\n")
 	} else if e.Match(event.CommandJoin) {
+		var room Room
+		if room,err = s.getRoom(ctx,e.Argv[1]);err != nil {
+			return
+		}
+
+		if err = room.Join(ctx,e.Session);err != nil {
+			return
+		}
 
 	} else {
 
 	}
+
+	return
 }
 
 func (s *Server) Run() {

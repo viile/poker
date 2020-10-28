@@ -2,21 +2,24 @@ package session
 
 import (
 	"context"
+	"fmt"
+	"time"
 )
 
 // Session struct
 type Session struct {
+	id string
 	name string
 
-	// 0 offline 1 online
 	status int
 
 	*Conn
 }
 
 //
-func NewSession(ctx context.Context, c *Conn) *Session {
+func NewSession(ctx context.Context, c *Conn,i uint32) *Session {
 	s := &Session{
+		id : fmt.Sprintf("%d%d",time.Now().UnixNano(),i),
 		Conn: c,
 	}
 
@@ -25,7 +28,7 @@ func NewSession(ctx context.Context, c *Conn) *Session {
 
 //
 func (s *Session) GetID() string {
-	return s.name
+	return s.id
 }
 
 //
