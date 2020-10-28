@@ -5,6 +5,7 @@ import (
 	"github.com/viile/poker/tools/codec"
 	"github.com/viile/poker/tools/event"
 	"github.com/viile/poker/tools/log"
+	"github.com/viile/poker/tools/template"
 	"go.uber.org/zap"
 	"net"
 )
@@ -22,13 +23,13 @@ type Server struct {
 	//
 	listener net.Listener
 	//
-	stopCh   chan interface{}
+	stopCh chan interface{}
 
-	f func(ctx context.Context,e *EventSession)
+	f func(ctx context.Context, e *EventSession)
 }
 
 // NewServer create a new socket service
-func NewServer(addr string,f func(ctx context.Context,e *EventSession)) (*Server, error) {
+func NewServer(addr string, f func(ctx context.Context, e *EventSession)) (*Server, error) {
 	l, err := net.Listen("tcp", addr)
 
 	if err != nil {
@@ -38,7 +39,7 @@ func NewServer(addr string,f func(ctx context.Context,e *EventSession)) (*Server
 	s := &Server{
 		stopCh:   make(chan interface{}),
 		listener: l,
-		f:f,
+		f:        f,
 	}
 
 	return s, nil
@@ -70,7 +71,7 @@ func (s *Server) acceptHandler(ctx context.Context) {
 	for {
 		c, err := s.listener.Accept()
 		if err != nil {
-			log.GetLogger().Error("acceptHandler",zap.Error(err))
+			log.GetLogger().Error("acceptHandler", zap.Error(err))
 			continue
 		}
 
@@ -90,30 +91,34 @@ func (s *Server) connectHandler(ctx context.Context, c net.Conn) {
 	go conn.readCoroutine(cctx)
 	go conn.writeCoroutine(cctx)
 
-
-	sess := NewSession(ctx,conn)
+	sess := NewSession(ctx, conn)
 
 	for {
 		select {
 		case err := <-conn.done:
-			log.GetLogger().Error("connectHandler",zap.Error(err))
+			log.GetLogger().Error("connectHandler", zap.Error(err))
 			return
 		case msg := <-conn.messageCh:
-			log.GetLogger().Debug("connectHandler",zap.String("msg",string(*msg)))
-			e,err := parser.Decode(msg)
+			e, err := parser.Decode(msg)
 			if err != nil {
-				log.GetLogger().Error("connectHandler",zap.Error(err))
+				log.GetLogger().Error("connectHandler", zap.Error(err))
 				return
 			}
-			log.GetLogger().Debug("connectHandler",zap.Any("msg",e))
+			log.GetLogger().Debug("connectHandler", zap.Any("msg", e))
 
-			if e.Argc <= 0 || len(e.Argv) <= 0{
-				continue
+			if sess.NeedLogin() {
+				if e.Match(event.CommandLogin) {
+					sess.Login(ctx, e.Argv[1])
+					template.LoginSuccess.Execute(conn, nil)
+					continue
+				} else {
+					template.NeedLogin.Execute(conn, nil)
+					continue
+				}
 			}
 
-			ee := &EventSession{e,sess,conn}
-			s.f(cctx,ee)
+			ee := &EventSession{e, sess, conn}
+			s.f(cctx, ee)
 		}
 	}
 }
-

@@ -151,8 +151,7 @@ func (c Cards) IsSeq() bool {
 	return true
 }
 
-
-func compare(a,b int) (int) {
+func compare(a, b int) int {
 	if a < b {
 		return -1
 	} else if a == b {
@@ -166,7 +165,7 @@ func (c Cards) Recommend(o Cards) (str string) {
 	return ""
 }
 
-func (c Cards) Contain(o Cards) (bool) {
+func (c Cards) Contain(o Cards) bool {
 	index := 0
 	flag := 0
 	for index < c.Len() {
@@ -226,14 +225,14 @@ func (c Cards) Compare(o Cards) (i int, err error) {
 	oc := NewCardsComponent(o)
 
 	switch a {
-	case TypeSole,TypeSoleChain,TypePair,TypePairChain,TypeTrio,TypeBomb:
-		i = compare(o[0].GetVal(),c[0].GetVal())
+	case TypeSole, TypeSoleChain, TypePair, TypePairChain, TypeTrio, TypeBomb:
+		i = compare(o[0].GetVal(), c[0].GetVal())
 		return
-	case TypeTrioSole,TypeTrioPair,TypeAirplane,TypeAirplaneSole,TypeAirplanePair:
-		i = compare(oc.Trio[0].GetVal(),cc.Trio[0].GetVal())
+	case TypeTrioSole, TypeTrioPair, TypeAirplane, TypeAirplaneSole, TypeAirplanePair:
+		i = compare(oc.Trio[0].GetVal(), cc.Trio[0].GetVal())
 		return
-	case TypeDualSole,TypeDualPair:
-		i = compare(oc.Dual[0].GetVal(),cc.Dual[0].GetVal())
+	case TypeDualSole, TypeDualPair:
+		i = compare(oc.Dual[0].GetVal(), cc.Dual[0].GetVal())
 		return
 	}
 
@@ -242,11 +241,11 @@ func (c Cards) Compare(o Cards) (i int, err error) {
 }
 
 func (c Cards) Remove(o Cards) Cards {
-	ret := make(Cards,0)
-	var i,j int
+	ret := make(Cards, 0)
+	var i, j int
 	for i < c.Len() {
-		if j >= o.Len() || c[i].Name != o[j].Name{
-			ret = append(ret,c[i])
+		if j >= o.Len() || c[i].Name != o[j].Name {
+			ret = append(ret, c[i])
 			i++
 			continue
 		}

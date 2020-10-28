@@ -1,18 +1,16 @@
 package codec
 
 import (
+	"github.com/viile/poker/tools/errors"
 	"github.com/viile/poker/tools/event"
 	"strings"
 )
 
 type Codec struct {
-
 }
 
 func NewCodec() *Codec {
-	return &Codec{
-
-	}
+	return &Codec{}
 }
 
 func (c *Codec) Decode(buf *[]byte) (e *event.Event, err error) {
@@ -37,5 +35,24 @@ func (c *Codec) Decode(buf *[]byte) (e *event.Event, err error) {
 		index++
 	}
 	e.Append(msg[tmp:index])
+
+	if e.Argc <= 0 || len(e.Argv) <= 0 || e.Argc != len(e.Argv) {
+		err = errors.ErrParser.WithMsg("命令长度错误")
+		return
+	}
+
+	if c, ok := event.CommandConfigs[e.Argv[0]]; ok {
+		if c.MinArgNumbers > 0 && e.Argc < c.MinArgNumbers {
+			err = errors.ErrParser.WithMsg("命令长度过短")
+			return
+		}
+		if c.MaxArgNumbers > 0 && e.Argc > c.MaxArgNumbers {
+			err = errors.ErrParser.WithMsg("命令长度过长")
+			return
+		}
+	}
+
+	e.Name = e.Argv[0]
+
 	return
 }

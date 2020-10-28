@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func init()  {
+func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
@@ -21,9 +21,9 @@ func main() {
 	flag.StringVar(&port, "p", "8787", "server port")
 	flag.Parse()
 
-	addr := fmt.Sprintf("%s:%s",host,port)
+	addr := fmt.Sprintf("%s:%s", host, port)
 
-	s,err := server.NewServer(addr)
+	s, err := server.NewServer(addr)
 	if err != nil {
 		panic(err)
 	}

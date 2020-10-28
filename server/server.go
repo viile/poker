@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/viile/poker/server/landlord"
+	"github.com/viile/poker/tools/event"
 	"github.com/viile/poker/tools/log"
 	"github.com/viile/poker/tools/session"
 	"github.com/viile/poker/tools/storage"
@@ -27,10 +28,10 @@ type Server struct {
 func NewServer(addr string) (*Server, error) {
 	s := &Server{
 		sessions: storage.NewMemoryStorage(),
-		rooms: storage.NewMemoryStorage(),
+		rooms:    storage.NewMemoryStorage(),
 	}
 
-	l,err := session.NewServer(addr,s.Handle)
+	l, err := session.NewServer(addr, s.Handle)
 	if err != nil {
 		return nil, err
 	}
@@ -39,29 +40,29 @@ func NewServer(addr string) (*Server, error) {
 	return s, nil
 }
 
-func (s *Server) Handle(ctx context.Context,e *session.EventSession) {
-	log.GetLogger().Info("Handle",zap.Any("e",e))
-	if e.Argv[0] == "list" {
-		objects,err := s.rooms.List(ctx,0,20)
+func (s *Server) Handle(ctx context.Context, e *session.EventSession) {
+	log.GetLogger().Info("Handle", zap.Any("e", e))
+	if e.Match(event.CommandList) {
+		objects, err := s.rooms.List(ctx, 0, 20)
 		if err != nil {
-			log.GetLogger().Error("Handle",zap.Error(err))
+			log.GetLogger().Error("Handle", zap.Error(err))
 			e.SendErr(err)
 			return
 		}
-		template.RoomList.Execute(e.Conn,objects)
-	} else if e.Argv[0] == "create" {
+		template.RoomList.Execute(e.Conn, objects)
+	} else if e.Match(event.CommandCreate) {
 		i := atomic.AddUint32(&s.counter, 1)
-		logic := landlord.NewRoom(ctx,int(i),fmt.Sprintf("%s的斗地主房间",e.Session.GetName(ctx)),e.Session.GetName(ctx))
+		logic := landlord.NewRoom(ctx, int(i), fmt.Sprintf("%s的斗地主房间", e.Session.GetName(ctx)), e.Session.GetName(ctx))
 
-		err := s.rooms.Write(ctx,i, logic)
+		err := s.rooms.Write(ctx, i, logic)
 		if err != nil {
-			log.GetLogger().Error("Handle",zap.Error(err))
+			log.GetLogger().Error("Handle", zap.Error(err))
 			return
 		}
 
 		e.SendMsg("房间创建成功\n")
 
-	} else if e.Argv[0] == "join" {
+	} else if e.Match(event.CommandJoin) {
 
 	} else {
 

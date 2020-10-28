@@ -9,15 +9,15 @@ type Session struct {
 	name string
 
 	// 0 offline 1 online
-	status 	int
+	status int
 
 	*Conn
 }
 
 //
-func NewSession(ctx context.Context,c *Conn) *Session {
+func NewSession(ctx context.Context, c *Conn) *Session {
 	s := &Session{
-		Conn:c,
+		Conn: c,
 	}
 
 	return s
@@ -39,6 +39,12 @@ func (s *Session) Logout(ctx context.Context) {
 }
 
 // Login .
-func (s *Session) Login(ctx context.Context,name string) {
+func (s *Session) Login(ctx context.Context, name string) {
+	s.name = name
 	s.status = 1
+}
+
+//
+func (s *Session) NeedLogin() bool {
+	return s.status != 1
 }

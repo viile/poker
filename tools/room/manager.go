@@ -11,37 +11,37 @@ type Manager struct {
 	se3s storage.Storage
 }
 
-func NewManager() *Manager{
+func NewManager() *Manager {
 	return &Manager{
 		se3s: storage.NewMemoryStorage(),
 	}
 }
 
-func (m *Manager) Join(ctx context.Context,id int,s *session.Session) (err error) {
+func (m *Manager) Join(ctx context.Context, id int, s *session.Session) (err error) {
 	var val interface{}
-	if val,err = m.se3s.Read(ctx,id);err != nil {
+	if val, err = m.se3s.Read(ctx, id); err != nil {
 		err = errors.ErrRoomNotExist.With(err)
 		return
 	}
 
-	r,ok := val.(*Room)
+	r, ok := val.(*Room)
 	if !ok {
 		err = errors.ErrType
 		return
 	}
 
-	r.Join(ctx,s)
+	r.Join(ctx, s)
 	return
 }
 
-func (m *Manager) Exit(ctx context.Context,id int,s *session.Session) (err error) {
+func (m *Manager) Exit(ctx context.Context, id int, s *session.Session) (err error) {
 	return
 }
 
-func (m *Manager) Create(ctx context.Context,id int,t string,s *session.Session) (err error) {
+func (m *Manager) Create(ctx context.Context, id int, t string, s *session.Session) (err error) {
 	return
 }
 
-func (m *Manager) List(ctx context.Context,s *session.Session) (err error) {
+func (m *Manager) List(ctx context.Context, s *session.Session) (err error) {
 	return
 }

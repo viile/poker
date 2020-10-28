@@ -29,8 +29,13 @@ func (e Err) With(err error) Err {
 	return Err{e: err, p: e}
 }
 
+func (e Err) WithMsg(msg string) Err {
+	return Err{e: NewErr(msg), p: e}
+}
+
 var (
 	ErrObjectNotFound = NewErr("数据不存在")
+	ErrParser         = NewErr("命令解析失败")
 	ErrUserExist      = NewErr("用户已存在")
 	ErrUserNotExist   = NewErr("用户不存在")
 	ErrPassword       = NewErr("密码错误")

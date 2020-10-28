@@ -2,14 +2,13 @@ package session
 
 import (
 	"bytes"
-	"net"
 	"context"
+	"net"
 )
 
 type Connect interface {
 	Close()
 	SendMessage(msg string) error
-
 }
 
 // Conn wrap net.Conn
@@ -40,7 +39,7 @@ func (c *Conn) Close() {
 	_ = c.rawConn.Close()
 }
 
-func (c *Conn) Write(p []byte) (n int, err error){
+func (c *Conn) Write(p []byte) (n int, err error) {
 	c.sendCh <- p
 	return
 }

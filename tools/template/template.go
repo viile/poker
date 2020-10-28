@@ -5,8 +5,12 @@ import (
 )
 
 var (
-	Welcome ,_ = template.New("Welcome").Parse(`
-=====================================================
+	NeedLogin, _ = template.New("NeedLogin").Parse(`
+请先登录!命令格式:login <name> (名字由英文数字组成,示例: login tom1 )
+`)
+
+	LoginSuccess, _ = template.New("LoginSuccess").Parse(`
+登录成功
 欢迎进入在线游戏平台
 版本v0.1.0
 
@@ -23,7 +27,7 @@ var (
 {{end}}
 =====================================================
 `)
-	RoomCreateSuccess,_ = template.New("RoomCreateSuccess").Parse(`
+	RoomCreateSuccess, _ = template.New("RoomCreateSuccess").Parse(`
 房价创建成功!序号:{{.Id}}
 `)
 )
