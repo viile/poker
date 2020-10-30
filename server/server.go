@@ -70,6 +70,7 @@ func (s *Server) Handle(ctx context.Context, e *session.EventSession) (err error
 			log.GetLogger().Error("Handle", zap.Error(err))
 			return
 		}
+
 		return template.RoomList.Execute(e.Conn, objects)
 	} else if e.Match(event.CommandCreate) {
 		i := atomic.AddUint32(&s.counter, 1)
@@ -79,7 +80,7 @@ func (s *Server) Handle(ctx context.Context, e *session.EventSession) (err error
 			return
 		}
 
-		return e.SendMsg("房间创建成功\n")
+		return template.RoomCreateSuccess.Execute(e.Conn,i)
 	} else if e.Match(event.CommandJoin) {
 		var room Room
 		if room,err = s.getRoom(ctx,e.Argv[1]);err != nil {
@@ -89,9 +90,17 @@ func (s *Server) Handle(ctx context.Context, e *session.EventSession) (err error
 		if err = room.Join(ctx,e.Session);err != nil {
 			return
 		}
+		e.Session.BindRoom(ctx,e.Argv[1])
 
+		return
 	} else {
+		id := e.Session.GetRoomID(ctx)
+		var room Room
+		if room,err = s.getRoom(ctx,id);err != nil {
+			return
+		}
 
+		return room.Handle(ctx,e.Session,e.Event)
 	}
 
 	return

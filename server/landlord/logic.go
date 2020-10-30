@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/viile/poker/tools/event"
 	"github.com/viile/poker/tools/session"
 	"math/rand"
 	"sort"
@@ -239,37 +240,38 @@ func (r *Room) Exit(ctx context.Context, sess *session.Session) {
 }
 
 // OnHandle .
-func (r *Room) Handle(ctx context.Context, sess *session.Session, msg string) (err error) {
+func (r *Room) Handle(ctx context.Context, s *session.Session, e *event.Event) (err error) {
 	defer r.lock()()
+	var msg = e.Argv[0]
 	if msg == "debug" {
 		m, _ := json.Marshal(r)
-		sess.SendMessage(m)
+		s.SendMessage(m)
 		return
 	}
 	switch r.Status {
 	case RoomStatusStart:
 		if msg == "rob" {
 			for _, v := range r.Sites {
-				if v.Name == sess.GetID() {
+				if v.Name == s.GetID() {
 					v.Rob = true
 					return
 				}
 			}
 		}
 	case RoomStatusPlaing:
-		if r.Sites[r.Wait].Name != sess.GetID() {
+		if r.Sites[r.Wait].Name != s.GetID() {
 			err = errors.New("还未轮到您出牌!")
 			return
 		}
 
 		if msg == "pass" {
-			return r.pass(ctx, sess)
+			return r.pass(ctx, s)
 		} else {
-			return r.calc(ctx, sess, msg)
+			return r.calc(ctx, s, msg)
 		}
 
 	case RoomStatusInit:
-		if r.Owner == sess.GetID() && msg == "start" {
+		if r.Owner == s.GetID() && msg == "start" {
 			return r.start(ctx)
 		}
 	}

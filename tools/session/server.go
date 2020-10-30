@@ -26,7 +26,7 @@ type Server struct {
 	//
 	stopCh chan interface{}
 
-	counter uint
+	counter uint32
 
 	f func(ctx context.Context, e *EventSession) error
 }

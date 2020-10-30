@@ -13,6 +13,8 @@ type Session struct {
 
 	status int
 
+	currRoomID string
+
 	*Conn
 }
 
@@ -45,6 +47,15 @@ func (s *Session) Logout(ctx context.Context) {
 func (s *Session) Login(ctx context.Context, name string) {
 	s.name = name
 	s.status = 1
+}
+
+//  .
+func (s *Session) BindRoom(ctx context.Context, id string) {
+	s.currRoomID = id
+}
+
+func (s *Session) GetRoomID(ctx context.Context) string{
+	return s.currRoomID
 }
 
 //
